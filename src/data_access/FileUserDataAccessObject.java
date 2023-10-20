@@ -2,6 +2,7 @@ package data_access;
 
 import entity.User;
 import entity.UserFactory;
+import use_case.clear_users.ClearUserDataAccessInterface;
 import use_case.login.LoginUserDataAccessInterface;
 import use_case.signup.SignupUserDataAccessInterface;
 
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class FileUserDataAccessObject implements SignupUserDataAccessInterface, LoginUserDataAccessInterface {
+public class FileUserDataAccessObject implements SignupUserDataAccessInterface, LoginUserDataAccessInterface, ClearUserDataAccessInterface {
 
     private final File csvFile;
 
@@ -58,13 +59,14 @@ public class FileUserDataAccessObject implements SignupUserDataAccessInterface, 
         accounts.put(user.getName(), user);
         this.save();
     }
-
     @Override
     public User get(String username) {
+
         return accounts.get(username);
     }
 
     private void save() {
+        System.out.println(accounts);
         BufferedWriter writer;
         try {
             writer = new BufferedWriter(new FileWriter(csvFile));
@@ -72,8 +74,10 @@ public class FileUserDataAccessObject implements SignupUserDataAccessInterface, 
             writer.newLine();
 
             for (User user : accounts.values()) {
+                System.out.println(user);
                 String line = String.format("%s,%s,%s",
                         user.getName(), user.getPassword(), user.getCreationTime());
+//                System.out.println(line);
                 writer.write(line);
                 writer.newLine();
             }
@@ -85,6 +89,16 @@ public class FileUserDataAccessObject implements SignupUserDataAccessInterface, 
         }
     }
 
+    @Override
+    public void clear() {
+        // Strategy: iterate over the existing users and set populated lines to null or the empty string to "clear" the user information
+        System.out.println(accounts);
+        accounts.clear();
+        this.save();
+        System.out.println(accounts);
+
+    }
+
 
     /**
      * Return whether a user exists with username identifier.
@@ -93,6 +107,7 @@ public class FileUserDataAccessObject implements SignupUserDataAccessInterface, 
      */
     @Override
     public boolean existsByName(String identifier) {
+
         return accounts.containsKey(identifier);
     }
 
